@@ -53,6 +53,7 @@ function stripe_gateway_class()
             $this->private_key = $this->testmode ? $this->get_option('test_private_key') : $this->get_option('private_key');
             $this->publishable_key = $this->testmode ? $this->get_option('test_publishable_key') : $this->get_option('publishable_key');
             $this->webhook_secret_endpoint = $this->testmode ? $this->get_option('test_webhook_secret_endpoint') : $this->get_option('webhook_secret_endpoint');
+            $this->currency = $this->get_option('currency') === '' ? 'usd' : $this->get_option('currency');
 
             // Hook to save all settings; you can create a custom method process_admin_options() as well
             add_action('woocommerce_update_options_payment_gateways_' . $this->id, array($this, 'process_admin_options'));
@@ -69,7 +70,21 @@ function stripe_gateway_class()
                     'description' => '',
                     'default' => 'no'
                 ),
-
+                'title' => array(
+                    'title'       => 'Card Payment',
+                    'type'        => 'text',
+                    'desc_tip'    => true,
+                ),
+                'description' => array(
+                    'title'       => 'Card Payment Description',
+                    'type'        => 'text',
+                    'desc_tip'    => true,
+                ),
+                'currency' => array(
+                    'title'       => 'Currency',
+                    'type'        => 'text',
+                    'default' => 'usd'
+                ),
                 'testmode' => array(
                     'title' => 'Test Mode',
                     'label' => 'Enable Test Mode',
@@ -115,7 +130,7 @@ function stripe_gateway_class()
             $this->webhook_secret_endpoint = $this->testmode ? $this->get_option('test_webhook_secret_endpoint') : $this->get_option('webhook_secret_endpoint');
             $this->private_key = $this->testmode ? $this->get_option('test_private_key') : $this->get_option('private_key');
             $this->publishable_key = $this->testmode ? $this->get_option('test_publishable_key') : $this->get_option('publishable_key');
-
+            $this->currency = $this->get_option('currency') === '' ? 'usd' : $this->get_option('currency');
             $stripe = new \Stripe\StripeClient($this->private_key);
 
             // Get the order object
@@ -144,7 +159,7 @@ function stripe_gateway_class()
             
                         // Create a new Price in Stripe based on your product logic
                         $price = $stripe->prices->create([
-                            'currency' => 'aed',
+                            'currency' => $this->currency,
                             'unit_amount' => ($product_price / $quantity) * 100, // Set the desired amount in cents
                             'product_data' => ['name' => $product_name],
                         ]);
